@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { MapPin, Phone, Mail, Clock, Send, MessageCircle, Headphones, Users } from 'lucide-react';
+import { MapPin, Phone, Mail, Send, MessageCircle, Headphones, Users } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { submitContactForm, resetContactState } from '../store/slices/newsletterContactSlice';
@@ -299,46 +299,9 @@ const ContactPage = () => {
               )}
             </div>
 
-            {/* Map & Additional Info */}
+            {/* Additional Info */}
             <div>
-              <h2 className="text-3xl font-bold mb-6">Find Us</h2>
-              
-              {/* Google Maps Embed */}
-              <div className="rounded-lg overflow-hidden shadow-md mb-6"> 
-  <iframe
-    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3497.031630850157!2d77.2490059!3d28.3893757!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cdbb65aaaaa91%3A0x483a7e0ac5ff8dda!2sSARVATRA%20INDUSTRIES%20(INDIA)%20PRIVATE%20LIMITED!5e0!3m2!1sen!2sin!4v1692277924567!5m2!1sen!2sin"
-    width="100%"
-    height="300"
-    style={{ border: 0 }}
-    allowFullScreen=""
-    loading="lazy"
-    referrerPolicy="no-referrer-when-downgrade"
-    title="Factory Location - Plot No. 33 Bhankri - Pali Road, Behind JAV Forging, Faridabad, Haryana - 121001"
-  ></iframe>
-</div>
-
-
-              {/* Store Hours */}
-              <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
-                <h3 className="text-lg font-semibold mb-4 flex items-center">
-                  <Clock className="h-5 w-5 mr-2 text-green-700" />
-                  Store Hours
-                </h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Monday - Saturday</span>
-                    <span className="font-medium">8:00 AM - 8:00 PM</span>
-                  </div>
-                  {/* <div className="flex justify-between">
-                    <span className="text-gray-600">Saturday</span>
-                    <span className="font-medium">9:00 AM - 6:00 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Sunday</span>
-                    <span className="font-medium">10:00 AM - 4:00 PM</span>
-                  </div> */}
-                </div>
-              </div>
+              <h2 className="text-3xl font-bold mb-6">Get In Touch</h2>
 
               {/* Quick Contact */}
               <div className="bg-green-600 text-white rounded-lg p-6">

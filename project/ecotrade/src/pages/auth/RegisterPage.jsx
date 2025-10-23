@@ -22,7 +22,6 @@ const RegisterPage = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [acceptTerms, setAcceptTerms] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
 
   const { isLoading } = useSelector((state) => state.auth);
@@ -79,10 +78,6 @@ const RegisterPage = () => {
       errors.confirmPassword = 'Please confirm your password';
     } else if (formData.password !== formData.confirmPassword) {
       errors.confirmPassword = 'Passwords do not match';
-    }
-
-    if (!acceptTerms) {
-      errors.terms = 'You must accept the terms and conditions';
     }
 
     setValidationErrors(errors);
@@ -241,31 +236,6 @@ const RegisterPage = () => {
                     </div>
                   </div>
                 </div>
-              )}
-
-              <div className="flex items-start">
-                <input
-                  id="terms"
-                  name="terms"
-                  type="checkbox"
-                  checked={acceptTerms}
-                  onChange={(e) => setAcceptTerms(e.target.checked)}
-                  className="h-4 w-4 text-green-700 focus:ring-green-600 border-gray-300 rounded mt-1"
-                />
-                <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
-                  I agree to the{' '}
-                  <Link to="/terms" className="text-green-700 hover:text-emerald-600">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link to="/privacy" className="text-green-700 hover:text-emerald-600">
-                    Privacy Policy
-                  </Link>
-                </label>
-              </div>
-              
-              {validationErrors.terms && (
-                <p className="text-red-600 text-sm">{validationErrors.terms}</p>
               )}
 
               <Button
