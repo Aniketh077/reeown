@@ -166,19 +166,53 @@ export const initiateRazorpayPayment = async (amount, userDetails, onSuccess, on
       config: {
         display: {
           blocks: {
-            banks: {
-              name: 'Pay via Bank Account',
+            // EMI Block - for Card EMI options
+            emi: {
+              name: 'EMI Options',
               instruments: [
                 {
-                  method: 'netbanking'
+                  method: 'emi',
+                  issuers: ['HDFC', 'ICIC', 'UTIB', 'SBIN', 'KKBK', 'SCBL', 'CITI', 'AMEX'] // Major banks supporting EMI
                 },
                 {
+                  method: 'cardless_emi',
+                  providers: ['earlysalary', 'zestmoney', 'hdfc', 'epaylater'] // Cardless EMI providers
+                }
+              ]
+            },
+            // Card Payment Block
+            card: {
+              name: 'Pay with Card',
+              instruments: [
+                {
+                  method: 'card'
+                }
+              ]
+            },
+            // UPI & Netbanking Block
+            banks: {
+              name: 'UPI & Netbanking',
+              instruments: [
+                {
                   method: 'upi'
+                },
+                {
+                  method: 'netbanking'
+                }
+              ]
+            },
+            // Wallets Block
+            wallets: {
+              name: 'Wallets',
+              instruments: [
+                {
+                  method: 'wallet',
+                  wallets: ['phonepe', 'paytm', 'mobikwik', 'amazonpay', 'freecharge', 'jiomoney', 'olamoney']
                 }
               ]
             }
           },
-          sequence: ['block.banks'],
+          sequence: ['block.emi', 'block.card', 'block.banks', 'block.wallets'],
           preferences: {
             show_default_blocks: true
           }
@@ -189,7 +223,17 @@ export const initiateRazorpayPayment = async (amount, userDetails, onSuccess, on
         ondismiss: function() {
           console.log('Payment cancelled by user');
           onFailure('Payment cancelled by user');
-        }
+        },
+        // Enable customer fee bearer for EMI
+        // This shows the EMI charges to customer
+        handleback: true,
+        escape: true,
+        animation: true
+      },
+      // Notes for EMI configuration
+      notes: {
+        payment_for: 'EcoTrade Purchase',
+        customer_email: userDetails.email
       }
     };
 

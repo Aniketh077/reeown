@@ -23,6 +23,12 @@ const ProductInfo = ({
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
   const [notificationEmail, setNotificationEmail] = useState('');
+  const [notificationPhone, setNotificationPhone] = useState('');
+  const [notificationChannels, setNotificationChannels] = useState({
+    email: true,
+    sms: false,
+    whatsapp: false
+  });
   const [showNotificationForm, setShowNotificationForm] = useState(false);
   const [isNotificationLoading, setIsNotificationLoading] = useState(false);
 
@@ -85,9 +91,19 @@ const ProductInfo = ({
       return;
     }
 
+    if ((notificationChannels.sms || notificationChannels.whatsapp) && !notificationPhone) {
+      showToast('Please enter your phone number for SMS/WhatsApp notifications', 'error');
+      return;
+    }
+
     setIsNotificationLoading(true);
     try {
-      await stockNotificationAPI.requestNotification(product._id, notificationEmail);
+      await stockNotificationAPI.requestNotification(
+        product._id,
+        notificationEmail,
+        notificationPhone || undefined,
+        notificationChannels
+      );
       showToast('You will be notified when this product is back in stock!', 'success');
       setShowNotificationForm(false);
     } catch (error) {
@@ -316,34 +332,94 @@ const ProductInfo = ({
 
             {/* Notification Form */}
             {showNotificationForm && (
-              <form onSubmit={handleNotifyMe} className="bg-green-50 border border-green-200 rounded-md p-4">
-                <h4 className="text-sm font-semibold text-green-800 mb-2">Get Notified When Back in Stock</h4>
-                <div className="flex gap-2">
+              <form onSubmit={handleNotifyMe} className="bg-green-50 border border-green-200 rounded-xl p-5 shadow-sm">
+                <h4 className="text-base font-semibold text-green-900 mb-4 flex items-center">
+                  <Bell className="h-5 w-5 mr-2" />
+                  Get Notified When Back in Stock
+                </h4>
+
+                {/* Email Input */}
+                <div className="mb-3">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Email Address *</label>
                   <input
                     type="email"
                     value={notificationEmail}
                     onChange={(e) => setNotificationEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    className="flex-1 px-3 py-2 border border-green-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="your.email@example.com"
+                    className="w-full px-3 py-2 border border-green-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     required
                   />
+                </div>
+
+                {/* Phone Input */}
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Phone Number {(notificationChannels.sms || notificationChannels.whatsapp) && <span className="text-red-500">*</span>}
+                  </label>
+                  <input
+                    type="tel"
+                    value={notificationPhone}
+                    onChange={(e) => setNotificationPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="10-digit mobile number"
+                    className="w-full px-3 py-2 border border-green-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    maxLength="10"
+                    pattern="[0-9]{10}"
+                  />
+                </div>
+
+                {/* Notification Preferences */}
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-gray-700 mb-2">Notify me via:</label>
+                  <div className="space-y-2">
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={notificationChannels.email}
+                        onChange={(e) => setNotificationChannels({...notificationChannels, email: e.target.checked})}
+                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">📧 Email</span>
+                    </label>
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={notificationChannels.sms}
+                        onChange={(e) => setNotificationChannels({...notificationChannels, sms: e.target.checked})}
+                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">📱 SMS (requires phone number)</span>
+                    </label>
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={notificationChannels.whatsapp}
+                        onChange={(e) => setNotificationChannels({...notificationChannels, whatsapp: e.target.checked})}
+                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">💬 WhatsApp (requires phone number)</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
                   <Button
                     type="submit"
                     variant="primary"
                     size="sm"
                     disabled={isNotificationLoading}
-                    className="whitespace-nowrap"
+                    className="flex-1 bg-green-600 hover:bg-green-700"
                   >
                     {isNotificationLoading ? 'Subscribing...' : 'Notify Me'}
                   </Button>
+                  <button
+                    type="button"
+                    onClick={() => setShowNotificationForm(false)}
+                    className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 font-medium"
+                  >
+                    Cancel
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowNotificationForm(false)}
-                  className="text-xs text-gray-500 hover:text-gray-700 mt-2"
-                >
-                  Cancel
-                </button>
               </form>
             )}
           </div>

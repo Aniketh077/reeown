@@ -4,10 +4,17 @@ const EmailService = require('../emailService/EmailService');
 
 exports.requestNotification = async (req, res) => {
   try {
-    const { productId, email } = req.body;
+    const { productId, email, phone, notificationChannels } = req.body;
 
     if (!productId || !email) {
       return res.status(400).json({ message: 'Product ID and email are required' });
+    }
+
+    // Validate phone if SMS or WhatsApp is enabled
+    if (notificationChannels && (notificationChannels.sms || notificationChannels.whatsapp)) {
+      if (!phone) {
+        return res.status(400).json({ message: 'Phone number is required for SMS/WhatsApp notifications' });
+      }
     }
 
     const product = await Product.findById(productId);
@@ -25,15 +32,27 @@ exports.requestNotification = async (req, res) => {
     });
 
     if (existingNotification && !existingNotification.notified) {
+      // Update existing notification with new preferences
+      if (phone) existingNotification.phone = phone;
+      if (notificationChannels) existingNotification.notificationChannels = notificationChannels;
+      await existingNotification.save();
+
       return res.status(200).json({
         success: true,
-        message: 'You are already subscribed to notifications for this product'
+        message: 'Notification preferences updated successfully',
+        notification: existingNotification
       });
     }
 
     const notification = await StockNotification.create({
       email,
-      product: productId
+      phone: phone || undefined,
+      product: productId,
+      notificationChannels: notificationChannels || {
+        email: true,
+        sms: phone ? true : false,
+        whatsapp: phone ? true : false
+      }
     });
 
     res.status(201).json({
@@ -55,26 +74,78 @@ exports.notifyStockAvailable = async (productId) => {
     });
 
     const product = await Product.findById(productId);
+    let successCount = 0;
+    let failedCount = 0;
 
     for (const notification of notifications) {
       try {
-        await EmailService.sendStockNotification(
-          notification.email,
-          product.name,
-          product._id
-        );
+        const channels = notification.notificationChannels || { email: true };
+        let notificationSent = false;
 
-        notification.notified = true;
-        notification.notifiedAt = new Date();
-        await notification.save();
+        // Send Email Notification
+        if (channels.email) {
+          try {
+            await EmailService.sendStockNotification(
+              notification.email,
+              product.name,
+              product._id
+            );
+            notificationSent = true;
+            console.log(`Email notification sent to ${notification.email}`);
+          } catch (emailError) {
+            console.error(`Failed to send email to ${notification.email}:`, emailError);
+          }
+        }
+
+        // Send SMS Notification
+        if (channels.sms && notification.phone) {
+          try {
+            await EmailService.sendSMSNotification(
+              notification.phone,
+              product.name,
+              product._id
+            );
+            notificationSent = true;
+            console.log(`SMS notification sent to ${notification.phone}`);
+          } catch (smsError) {
+            console.error(`Failed to send SMS to ${notification.phone}:`, smsError);
+          }
+        }
+
+        // Send WhatsApp Notification
+        if (channels.whatsapp && notification.phone) {
+          try {
+            await EmailService.sendWhatsAppNotification(
+              notification.phone,
+              product.name,
+              product._id
+            );
+            notificationSent = true;
+            console.log(`WhatsApp notification sent to ${notification.phone}`);
+          } catch (whatsappError) {
+            console.error(`Failed to send WhatsApp to ${notification.phone}:`, whatsappError);
+          }
+        }
+
+        if (notificationSent) {
+          notification.notified = true;
+          notification.notifiedAt = new Date();
+          await notification.save();
+          successCount++;
+        } else {
+          failedCount++;
+        }
       } catch (error) {
-        console.error(`Failed to send notification to ${notification.email}:`, error);
+        console.error(`Failed to process notification for ${notification.email}:`, error);
+        failedCount++;
       }
     }
 
     return {
       success: true,
-      notifiedCount: notifications.length
+      notifiedCount: successCount,
+      failedCount: failedCount,
+      totalRequests: notifications.length
     };
   } catch (error) {
     console.error('Notify stock available error:', error);

@@ -604,6 +604,97 @@ const customerMailOptions = {
       throw error;
     }
   }
+
+  async sendSMSNotification(phone, productName, productId) {
+    try {
+      // Note: This is a placeholder for SMS integration
+      // You would integrate with services like Twilio, MSG91, AWS SNS, or similar
+
+      const productUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/product/${productId}`;
+      const message = `Great news! ${productName} is back in stock at ${process.env.APP_NAME}. Buy now: ${productUrl}`;
+
+      console.log(`SMS would be sent to ${phone}: ${message}`);
+
+      // Example Twilio integration (uncomment and configure when ready):
+      /*
+      const twilio = require('twilio');
+      const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+
+      await client.messages.create({
+        body: message,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: `+91${phone}`
+      });
+      */
+
+      // Example MSG91 integration:
+      /*
+      const axios = require('axios');
+      await axios.get('https://api.msg91.com/api/v5/flow/', {
+        params: {
+          template_id: process.env.MSG91_TEMPLATE_ID,
+          mobile: `91${phone}`,
+          authkey: process.env.MSG91_AUTH_KEY,
+          product_name: productName,
+          product_url: productUrl
+        }
+      });
+      */
+
+      return { success: true, message: 'SMS notification queued' };
+    } catch (error) {
+      console.error('Error sending SMS notification:', error);
+      throw error;
+    }
+  }
+
+  async sendWhatsAppNotification(phone, productName, productId) {
+    try {
+      // Note: This is a placeholder for WhatsApp integration
+      // You would integrate with services like Twilio WhatsApp API, WhatsApp Business API, or similar
+
+      const productUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/product/${productId}`;
+      const message = `🎉 *${productName}* is back in stock!\n\nShop now at ${process.env.APP_NAME}: ${productUrl}`;
+
+      console.log(`WhatsApp would be sent to ${phone}: ${message}`);
+
+      // Example Twilio WhatsApp integration (uncomment and configure when ready):
+      /*
+      const twilio = require('twilio');
+      const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+
+      await client.messages.create({
+        body: message,
+        from: `whatsapp:${process.env.TWILIO_WHATSAPP_NUMBER}`,
+        to: `whatsapp:+91${phone}`
+      });
+      */
+
+      // Example WATI.io integration:
+      /*
+      const axios = require('axios');
+      await axios.post('https://live-server.wati.io/api/v1/sendTemplateMessage', {
+        whatsappNumber: `91${phone}`,
+        template_name: 'stock_notification',
+        broadcast_name: 'Stock Alert',
+        parameters: [
+          { name: 'product_name', value: productName },
+          { name: 'product_url', value: productUrl }
+        ]
+      }, {
+        headers: {
+          'Authorization': `Bearer ${process.env.WATI_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      */
+
+      return { success: true, message: 'WhatsApp notification queued' };
+    } catch (error) {
+      console.error('Error sending WhatsApp notification:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new EmailService();
