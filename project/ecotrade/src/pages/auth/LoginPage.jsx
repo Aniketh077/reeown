@@ -214,6 +214,15 @@ const LoginPage = () => {
               </Link>
             </div>
 
+            <div className="mt-4 text-center text-sm">
+              <Link
+                to="/mobile-login"
+                className="font-medium text-green-700 hover:text-emerald-600"
+              >
+                Login with Mobile Number →
+              </Link>
+            </div>
+
             <div className="mt-4 text-center">
               <p className="text-xs text-gray-500">
                 Having trouble signing in?{' '}

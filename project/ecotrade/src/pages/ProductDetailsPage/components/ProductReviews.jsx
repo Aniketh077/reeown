@@ -24,9 +24,7 @@ const ProductReviews = ({
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [reviewForm, setReviewForm] = useState({
     rating: 5,
-    comment: '',
-    reviewerName: '',
-    reviewerEmail: ''
+    comment: ''
   });
   const [submittingReview, setSubmittingReview] = useState(false);
 
@@ -78,40 +76,40 @@ const ProductReviews = ({
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!reviewForm.reviewerName.trim() || !reviewForm.reviewerEmail.trim()) {
-      showError('Please fill in your name and email');
+
+    if (!isAuthenticated) {
+      showError('You must be logged in to leave a review');
       return;
     }
-    
+
     if (!reviewForm.comment.trim()) {
       showError('Please write a review comment');
       return;
     }
-    
+
     setSubmittingReview(true);
-    
+
     try {
       await dispatch(rateProduct({
         productId: product._id,
         ratingData: {
           rating: reviewForm.rating,
-          comment: reviewForm.comment.trim(),
-          reviewerName: reviewForm.reviewerName.trim(),
-          reviewerEmail: reviewForm.reviewerEmail.trim()
+          comment: reviewForm.comment.trim()
         }
       })).unwrap();
-      
+
       showSuccess('Review submitted successfully!');
       setShowReviewForm(false);
       setReviewForm({
         rating: 5,
-        comment: '',
-        reviewerName: '',
-        reviewerEmail: ''
+        comment: ''
       });
     } catch (error) {
-      showError(error.message || 'Failed to submit review');
+      if (error.requiresPurchase) {
+        showError('You can only review products you have purchased');
+      } else {
+        showError(error.message || 'Failed to submit review');
+      }
     } finally {
       setSubmittingReview(false);
     }
@@ -151,30 +149,24 @@ const ProductReviews = ({
         {showReviewForm && (
           <div className="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
             <h3 className="text-lg font-semibold mb-4">Write a Review</h3>
-            <form onSubmit={handleReviewSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="Your Name"
-                  name="reviewerName"
-                  value={reviewForm.reviewerName}
-                  onChange={handleFormChange}
-                  leftIcon={<User className="h-5 w-5" />}
-                  placeholder="Enter your name"
-                  required
-                  fullWidth
-                />
-                <Input
-                  label="Email Address"
-                  name="reviewerEmail"
-                  type="email"
-                  value={reviewForm.reviewerEmail}
-                  onChange={handleFormChange}
-                  leftIcon={<Mail className="h-5 w-5" />}
-                  placeholder="Enter your email"
-                  required
-                  fullWidth
-                />
+            {!isAuthenticated ? (
+              <div className="text-center py-8">
+                <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-700 mb-4">You must be logged in to write a review</p>
+                <Button variant="primary" onClick={() => window.location.href = '/login'}>
+                  Login to Review
+                </Button>
               </div>
+            ) : (
+              <form onSubmit={handleReviewSubmit} className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <div className="flex items-start">
+                    <Shield className="h-5 w-5 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
+                    <p className="text-sm text-blue-800">
+                      You can only review products you have purchased. Your review will be marked as a verified purchase.
+                    </p>
+                  </div>
+                </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -240,6 +232,7 @@ const ProductReviews = ({
                 </Button>
               </div>
             </form>
+            )}
           </div>
         )}
 

@@ -17,6 +17,7 @@ import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import OrderSuccessPage from "./pages/OrderSuccessPage";
 import LoginPage from "./pages/auth/LoginPage";
+import MobileLoginPage from "./pages/auth/MobileLoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
 import EmailVerificationPage from "./pages/auth/EmailVerificationPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
@@ -95,6 +96,7 @@ function App() {
                   <Route path="/checkout" element={<CheckoutPage />} />
                   <Route path="/order-success" element={<OrderSuccessPage />} />
                   <Route path="/login" element={<LoginPage />} />
+                  <Route path="/mobile-login" element={<MobileLoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
                   <Route
                     path="/verify-email"

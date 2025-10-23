@@ -20,17 +20,23 @@ const cartItemSchema = new mongoose.Schema({
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  email: { 
-    type: String, 
-    required: true, 
-    unique: true,
+  email: {
+    type: String,
+    required: false,
+    sparse: true,
     match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please add a valid email']
   },
-  password: { type: String, required: true },
-  phoneNumber: { 
-    type: String, 
+  password: { type: String, required: false },
+  phoneNumber: {
+    type: String,
     required: false,
-    match: [/^[\+]?[1-9][\d]{0,15}$/, 'Please add a valid phone number']
+    sparse: true,
+    unique: true,
+    match: [/^[6-9]\d{9}$/, 'Please add a valid 10-digit Indian mobile number']
+  },
+  isPhoneVerified: {
+    type: Boolean,
+    default: false
   },
   address: { type: String, required: false },
   city: { type: String, required: false },
