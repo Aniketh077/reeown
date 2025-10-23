@@ -346,6 +346,264 @@ const customerMailOptions = {
       throw error;
     }
   }
+
+  async sendBusinessInquiryConfirmation(email, contactPersonName, companyName) {
+    try {
+      const transporter = await this.createTransporter();
+
+      const mailOptions = {
+        from: `"${process.env.APP_NAME}" <${process.env.GMAIL_USER}>`,
+        to: email,
+        subject: `Business Inquiry Received - ${companyName}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+            <table role="presentation" style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td align="center" style="padding: 40px 0;">
+                  <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    <tr>
+                      <td style="padding: 40px 30px; text-align: center; background: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%);">
+                        <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">Thank You for Your Interest!</h1>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 40px 30px;">
+                        <p style="margin: 0 0 20px; font-size: 16px; color: #333;">Dear ${contactPersonName},</p>
+                        <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #666;">
+                          Thank you for submitting a bulk purchase inquiry with <strong>${process.env.APP_NAME}</strong> on behalf of <strong>${companyName}</strong>.
+                        </p>
+                        <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #666;">
+                          We have received your request and our dedicated B2B team is reviewing your requirements. You can expect to hear from us within <strong>24 hours</strong> with:
+                        </p>
+                        <ul style="margin: 0 0 20px; padding-left: 25px; color: #666;">
+                          <li style="margin-bottom: 10px;">Customized quote based on your specifications</li>
+                          <li style="margin-bottom: 10px;">Volume discount pricing</li>
+                          <li style="margin-bottom: 10px;">Flexible payment term options</li>
+                          <li style="margin-bottom: 10px;">Delivery timeline and logistics details</li>
+                        </ul>
+                        <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #666;">
+                          In the meantime, if you have any urgent questions, please don't hesitate to reach out to us.
+                        </p>
+                        <div style="margin: 30px 0; padding: 20px; background-color: #f0f9ff; border-left: 4px solid #3b82f6; border-radius: 4px;">
+                          <p style="margin: 0; font-size: 14px; color: #1e40af;">
+                            <strong>Reference ID:</strong> Will be provided in our response<br>
+                            <strong>Company:</strong> ${companyName}<br>
+                            <strong>Status:</strong> Under Review
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 30px; background-color: #f9fafb; text-align: center;">
+                        <p style="margin: 0 0 10px; font-size: 14px; color: #666;">
+                          Best regards,<br>
+                          <strong>${process.env.APP_NAME} B2B Team</strong>
+                        </p>
+                        <p style="margin: 0; font-size: 12px; color: #999;">
+                          © ${new Date().getFullYear()} ${process.env.APP_NAME}. All rights reserved.
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+          </html>
+        `
+      };
+
+      const result = await transporter.sendMail(mailOptions);
+      console.log('Business inquiry confirmation email sent:', result.messageId);
+      return result;
+    } catch (error) {
+      console.error('Error sending business inquiry confirmation:', error);
+      throw error;
+    }
+  }
+
+  async sendBusinessInquiryNotificationToAdmin(businessRequest) {
+    try {
+      const transporter = await this.createTransporter();
+
+      const mailOptions = {
+        from: `"${process.env.APP_NAME}" <${process.env.GMAIL_USER}>`,
+        to: process.env.ADMIN_EMAIL,
+        subject: `New Business Inquiry - ${businessRequest.companyName}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+            <table role="presentation" style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td align="center" style="padding: 40px 0;">
+                  <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff;">
+                    <tr>
+                      <td style="padding: 30px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                        <h1 style="margin: 0; color: #ffffff; font-size: 24px;">🏢 New Business Inquiry</h1>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 30px;">
+                        <h2 style="margin: 0 0 20px; color: #333;">Company Details</h2>
+                        <table style="width: 100%; margin-bottom: 20px;">
+                          <tr>
+                            <td style="padding: 8px; background-color: #f9fafb; font-weight: bold; width: 40%;">Company Name:</td>
+                            <td style="padding: 8px; background-color: #ffffff;">${businessRequest.companyName}</td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 8px; background-color: #f9fafb; font-weight: bold;">Contact Person:</td>
+                            <td style="padding: 8px; background-color: #ffffff;">${businessRequest.contactPersonName}</td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 8px; background-color: #f9fafb; font-weight: bold;">Designation:</td>
+                            <td style="padding: 8px; background-color: #ffffff;">${businessRequest.designation}</td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 8px; background-color: #f9fafb; font-weight: bold;">Email:</td>
+                            <td style="padding: 8px; background-color: #ffffff;">${businessRequest.email}</td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 8px; background-color: #f9fafb; font-weight: bold;">Phone:</td>
+                            <td style="padding: 8px; background-color: #ffffff;">${businessRequest.phone}</td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 8px; background-color: #f9fafb; font-weight: bold;">Business Type:</td>
+                            <td style="padding: 8px; background-color: #ffffff;">${businessRequest.businessType}</td>
+                          </tr>
+                        </table>
+
+                        <h2 style="margin: 30px 0 20px; color: #333;">Purchase Requirements</h2>
+                        <table style="width: 100%; margin-bottom: 20px;">
+                          <tr>
+                            <td style="padding: 8px; background-color: #f9fafb; font-weight: bold; width: 40%;">Product Categories:</td>
+                            <td style="padding: 8px; background-color: #ffffff;">${businessRequest.productCategories.join(', ')}</td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 8px; background-color: #f9fafb; font-weight: bold;">Quantity Range:</td>
+                            <td style="padding: 8px; background-color: #ffffff;">${businessRequest.quantityRange}</td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 8px; background-color: #f9fafb; font-weight: bold;">Budget Range:</td>
+                            <td style="padding: 8px; background-color: #ffffff;">${businessRequest.budgetRange}</td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 8px; background-color: #f9fafb; font-weight: bold;">Purchase Frequency:</td>
+                            <td style="padding: 8px; background-color: #ffffff;">${businessRequest.purchaseFrequency}</td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 8px; background-color: #f9fafb; font-weight: bold;">Urgency:</td>
+                            <td style="padding: 8px; background-color: #ffffff;">${businessRequest.urgency}</td>
+                          </tr>
+                        </table>
+
+                        <h2 style="margin: 30px 0 20px; color: #333;">Specific Requirements</h2>
+                        <p style="padding: 15px; background-color: #f9fafb; border-left: 4px solid #3b82f6; margin: 0;">
+                          ${businessRequest.specificRequirements}
+                        </p>
+
+                        <div style="margin-top: 30px; text-align: center;">
+                          <a href="${process.env.FRONTEND_URL}/admin" style="display: inline-block; padding: 12px 30px; background-color: #3b82f6; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                            View in Admin Panel
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+          </html>
+        `
+      };
+
+      const result = await transporter.sendMail(mailOptions);
+      console.log('Business inquiry admin notification sent:', result.messageId);
+      return result;
+    } catch (error) {
+      console.error('Error sending business inquiry admin notification:', error);
+      throw error;
+    }
+  }
+
+  async sendBusinessQuote(email, contactPersonName, companyName, quotedAmount) {
+    try {
+      const transporter = await this.createTransporter();
+
+      const mailOptions = {
+        from: `"${process.env.APP_NAME}" <${process.env.GMAIL_USER}>`,
+        to: email,
+        subject: `Quote for ${companyName} - ${process.env.APP_NAME}`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          </head>
+          <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+            <table role="presentation" style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td align="center" style="padding: 40px 0;">
+                  <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff;">
+                    <tr>
+                      <td style="padding: 40px 30px; text-align: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <h1 style="margin: 0; color: #ffffff; font-size: 28px;">Your Quote is Ready!</h1>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 40px 30px;">
+                        <p style="margin: 0 0 20px; font-size: 16px; color: #333;">Dear ${contactPersonName},</p>
+                        <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #666;">
+                          Thank you for your interest in partnering with ${process.env.APP_NAME}. We're pleased to provide you with a customized quote for ${companyName}.
+                        </p>
+
+                        <div style="margin: 30px 0; padding: 30px; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 8px; text-align: center;">
+                          <p style="margin: 0 0 10px; font-size: 14px; color: #166534; font-weight: bold; text-transform: uppercase;">Estimated Quote</p>
+                          <p style="margin: 0; font-size: 36px; color: #15803d; font-weight: bold;">₹${quotedAmount ? quotedAmount.toLocaleString('en-IN') : 'TBD'}</p>
+                        </div>
+
+                        <p style="margin: 20px 0; font-size: 16px; line-height: 1.6; color: #666;">
+                          Our team will contact you shortly to discuss the details, delivery timelines, and finalize the agreement. We look forward to building a successful partnership with you!
+                        </p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 30px; background-color: #f9fafb; text-align: center;">
+                        <p style="margin: 0; font-size: 14px; color: #666;">
+                          Best regards,<br>
+                          <strong>${process.env.APP_NAME} B2B Team</strong>
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+          </html>
+        `
+      };
+
+      const result = await transporter.sendMail(mailOptions);
+      console.log('Business quote email sent:', result.messageId);
+      return result;
+    } catch (error) {
+      console.error('Error sending business quote email:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new EmailService();

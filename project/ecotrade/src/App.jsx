@@ -31,6 +31,7 @@ import SearchPage from "./pages/SearchPage";
 import SellPage from "./pages/SellPage";
 import RepairPage from "./pages/RepairPage";
 import RecyclePage from "./pages/RecyclePage";
+import BusinessPage from "./pages/BusinessPage";
 import WishlistPage from "./pages/WishlistPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/AdminProducts/AdminProducts";
@@ -125,6 +126,7 @@ function App() {
                   <Route path="/sell" element={<SellPage />} />
                   <Route path="/repair" element={<RepairPage />} />
                   <Route path="/recycle" element={<RecyclePage />} />
+                  <Route path="/business" element={<BusinessPage />} />
                   <Route path="/wishlist" element={<WishlistPage />} />
 
                   {/* Admin Routes */}

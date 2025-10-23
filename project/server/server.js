@@ -18,6 +18,7 @@ const recycleRoutes = require('./routes/recycleRoutes');
 const wishlistRoutes = require('./routes/wishlistRoutes');
 const stockNotificationRoutes = require('./routes/stockNotificationRoutes');
 const otpRoutes = require('./routes/otpRoutes');
+const businessRoutes = require('./routes/businessRoutes');
 
 
 const app = express();
@@ -113,7 +114,8 @@ app.use('/api/repair', repairRoutes);
 app.use('/api/recycle', recycleRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/stock-notifications', stockNotificationRoutes);
-app.use('/api/otp', otpRoutes); 
+app.use('/api/otp', otpRoutes);
+app.use('/api/business', businessRoutes); 
 
 // Health check route with environment info
 app.get('/api/health', (req, res) => {

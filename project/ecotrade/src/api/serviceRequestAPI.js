@@ -68,6 +68,33 @@ export const serviceRequestAPI = {
       const response = await axios.delete(`/api/recycle/${id}`);
       return response.data;
     }
+  },
+
+  business: {
+    create: async (data) => {
+      const response = await axios.post('/api/business', data);
+      return response.data;
+    },
+    getAll: async (params) => {
+      const response = await axios.get('/api/business', { params });
+      return response.data;
+    },
+    getById: async (id) => {
+      const response = await axios.get(`/api/business/${id}`);
+      return response.data;
+    },
+    update: async (id, data) => {
+      const response = await axios.put(`/api/business/${id}`, data);
+      return response.data;
+    },
+    delete: async (id) => {
+      const response = await axios.delete(`/api/business/${id}`);
+      return response.data;
+    },
+    getStats: async () => {
+      const response = await axios.get('/api/business/stats');
+      return response.data;
+    }
   }
 };
 
