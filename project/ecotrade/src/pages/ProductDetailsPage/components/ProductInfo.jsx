@@ -23,12 +23,6 @@ const ProductInfo = ({
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [isWishlistLoading, setIsWishlistLoading] = useState(false);
   const [notificationEmail, setNotificationEmail] = useState('');
-  const [notificationPhone, setNotificationPhone] = useState('');
-  const [notificationChannels, setNotificationChannels] = useState({
-    email: true,
-    sms: false,
-    whatsapp: false
-  });
   const [showNotificationForm, setShowNotificationForm] = useState(false);
   const [isNotificationLoading, setIsNotificationLoading] = useState(false);
 
@@ -91,18 +85,11 @@ const ProductInfo = ({
       return;
     }
 
-    if ((notificationChannels.sms || notificationChannels.whatsapp) && !notificationPhone) {
-      showToast('Please enter your phone number for SMS/WhatsApp notifications', 'error');
-      return;
-    }
-
     setIsNotificationLoading(true);
     try {
       await stockNotificationAPI.requestNotification(
         product._id,
-        notificationEmail,
-        notificationPhone || undefined,
-        notificationChannels
+        notificationEmail
       );
       showToast('You will be notified when this product is back in stock!', 'success');
       setShowNotificationForm(false);
@@ -339,7 +326,7 @@ const ProductInfo = ({
                 </h4>
 
                 {/* Email Input */}
-                <div className="mb-3">
+                <div className="mb-4">
                   <label className="block text-xs font-medium text-gray-700 mb-1">Email Address *</label>
                   <input
                     type="email"
@@ -349,56 +336,7 @@ const ProductInfo = ({
                     className="w-full px-3 py-2 border border-green-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                     required
                   />
-                </div>
-
-                {/* Phone Input */}
-                <div className="mb-4">
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Phone Number {(notificationChannels.sms || notificationChannels.whatsapp) && <span className="text-red-500">*</span>}
-                  </label>
-                  <input
-                    type="tel"
-                    value={notificationPhone}
-                    onChange={(e) => setNotificationPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    placeholder="10-digit mobile number"
-                    className="w-full px-3 py-2 border border-green-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                    maxLength="10"
-                    pattern="[0-9]{10}"
-                  />
-                </div>
-
-                {/* Notification Preferences */}
-                <div className="mb-4">
-                  <label className="block text-xs font-medium text-gray-700 mb-2">Notify me via:</label>
-                  <div className="space-y-2">
-                    <label className="flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={notificationChannels.email}
-                        onChange={(e) => setNotificationChannels({...notificationChannels, email: e.target.checked})}
-                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">📧 Email</span>
-                    </label>
-                    <label className="flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={notificationChannels.sms}
-                        onChange={(e) => setNotificationChannels({...notificationChannels, sms: e.target.checked})}
-                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">📱 SMS (requires phone number)</span>
-                    </label>
-                    <label className="flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={notificationChannels.whatsapp}
-                        onChange={(e) => setNotificationChannels({...notificationChannels, whatsapp: e.target.checked})}
-                        className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">💬 WhatsApp (requires phone number)</span>
-                    </label>
-                  </div>
+                  <p className="mt-1 text-xs text-gray-500">We'll notify you when this product is back in stock</p>
                 </div>
 
                 {/* Action Buttons */}
@@ -427,64 +365,71 @@ const ProductInfo = ({
       </div>
       
       {/* Quantity Selector and Add to Cart */}
-      <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
-        <div className={`flex items-center border border-gray-300 rounded-md w-36 ${
-          product.stock === 0 ? 'opacity-50' : ''
-        }`}>
-          <button
-            onClick={decrementQuantity}
-            disabled={quantity <= 1 || product.stock === 0}
-            className="h-10 w-10 flex items-center justify-center text-gray-600 hover:text-green-700 disabled:opacity-50"
-          >
-            <Minus className="h-4 w-4" />
-          </button>
-          <input
-            type="number"
-            value={quantity}
-            onChange={(e) => {
-              const val = parseInt(e.target.value);
-              if (!isNaN(val) && val > 0 && val <= product.stock) {
-                setQuantity(val);
-              }
-            }}
-            className="h-10 w-16 border-0 text-center focus:ring-0"
-            min="1"
-            max={product.stock}
+      <div className="space-y-4 mb-6">
+        {/* Quantity Selector */}
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-medium text-gray-700">Quantity:</label>
+          <div className={`flex items-center border border-gray-300 rounded-md w-36 ${
+            product.stock === 0 ? 'opacity-50' : ''
+          }`}>
+            <button
+              onClick={decrementQuantity}
+              disabled={quantity <= 1 || product.stock === 0}
+              className="h-10 w-10 flex items-center justify-center text-gray-600 hover:text-green-700 disabled:opacity-50"
+            >
+              <Minus className="h-4 w-4" />
+            </button>
+            <input
+              type="number"
+              value={quantity}
+              onChange={(e) => {
+                const val = parseInt(e.target.value);
+                if (!isNaN(val) && val > 0 && val <= product.stock) {
+                  setQuantity(val);
+                }
+              }}
+              className="h-10 w-16 border-0 text-center focus:ring-0"
+              min="1"
+              max={product.stock}
+              disabled={product.stock === 0}
+            />
+            <button
+              onClick={incrementQuantity}
+              disabled={quantity >= product.stock || product.stock === 0}
+              className="h-10 w-10 flex items-center justify-center text-gray-600 hover:text-green-700 disabled:opacity-50"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Add to Cart and Wishlist Buttons */}
+        <div className="flex gap-3">
+          <Button
+            variant="primary"
+            size="lg"
+            leftIcon={<ShoppingCart className="h-5 w-5" />}
+            onClick={handleAddToCart}
             disabled={product.stock === 0}
-          />
-          <button
-            onClick={incrementQuantity}
-            disabled={quantity >= product.stock || product.stock === 0}
-            className="h-10 w-10 flex items-center justify-center text-gray-600 hover:text-green-700 disabled:opacity-50"
+            className={`flex-1 ${product.stock === 0 ? 'bg-gray-400 cursor-not-allowed hover:bg-gray-400' : ''}`}
           >
-            <Plus className="h-4 w-4" />
+            {product.stock === 0 ? 'Sold Out' : 'Add to Cart'}
+          </Button>
+          <button
+            onClick={handleToggleWishlist}
+            disabled={isWishlistLoading}
+            className="w-14 h-12 flex items-center justify-center border-2 border-gray-300 rounded-md hover:border-red-500 hover:bg-red-50 transition-all duration-200 flex-shrink-0"
+            aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+          >
+            <Heart
+              className={`h-6 w-6 transition-all duration-200 ${
+                isInWishlist
+                  ? 'text-red-500 fill-red-500'
+                  : 'text-gray-400'
+              }`}
+            />
           </button>
         </div>
-        <Button
-          variant="primary"
-          size="lg"
-          leftIcon={<ShoppingCart className="h-5 w-5" />}
-          onClick={handleAddToCart}
-          disabled={product.stock === 0}
-          fullWidth
-          className={`flex-1 ${product.stock === 0 ? 'bg-gray-400 cursor-not-allowed hover:bg-gray-400' : ''}`}
-        >
-          {product.stock === 0 ? 'Sold Out' : 'Add to Cart'}
-        </Button>
-        <button
-          onClick={handleToggleWishlist}
-          disabled={isWishlistLoading}
-          className="w-14 h-10 flex items-center justify-center border-2 border-gray-300 rounded-md hover:border-red-500 hover:bg-red-50 transition-all duration-200 flex-shrink-0"
-          aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
-        >
-          <Heart
-            className={`h-5 w-5 transition-all duration-200 ${
-              isInWishlist
-                ? 'text-red-500 fill-red-500'
-                : 'text-gray-400'
-            }`}
-          />
-        </button>
       </div>
       
       {/* Benefits */}
