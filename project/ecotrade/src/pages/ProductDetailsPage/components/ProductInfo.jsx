@@ -1,6 +1,10 @@
-import React from 'react';
-import { Minus, Plus, Check, ShoppingCart, Star, Truck as TruckIcon, ShieldCheck, Heart, Zap, TrendingDown, Percent, Calculator } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Minus, Plus, Check, ShoppingCart, Star, Truck as TruckIcon, ShieldCheck, Heart, Zap, TrendingDown, Percent, Calculator, CheckCircle, Bell } from 'lucide-react';
 import Button from '../../../components/ui/Button';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
+import { wishlistAPI } from '../../../api/wishlistAPI';
+import { stockNotificationAPI } from '../../../api/stockNotificationAPI';
 
 const ProductInfo = ({
   product,
@@ -14,6 +18,22 @@ const ProductInfo = ({
   collectionName,
   scrollToReviews
 }) => {
+  const { user } = useAuth();
+  const { showToast } = useToast();
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+  const [notificationEmail, setNotificationEmail] = useState('');
+  const [showNotificationForm, setShowNotificationForm] = useState(false);
+  const [isNotificationLoading, setIsNotificationLoading] = useState(false);
+
+  useEffect(() => {
+    if (user && user.wishlist) {
+      setIsInWishlist(user.wishlist.some(id => id === product._id || id._id === product._id));
+    }
+    if (user && user.email) {
+      setNotificationEmail(user.email);
+    }
+  }, [user, product._id]);
   // Safely extract type name as string with comprehensive validation
   let typeName = 'Refurbished Electronics';
   if (product && product.type) {
@@ -36,12 +56,53 @@ const ProductInfo = ({
   const savings = originalPrice - currentPrice;
   const discountPercentage = originalPrice > currentPrice ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100) : 0;
   const totalSavings = savings * quantity;
+
+  const handleToggleWishlist = async () => {
+    if (!user) {
+      showToast('Please login to manage wishlist', 'error');
+      return;
+    }
+
+    setIsWishlistLoading(true);
+    try {
+      const response = await wishlistAPI.toggleWishlist(product._id);
+      setIsInWishlist(response.isInWishlist);
+      showToast(
+        response.isInWishlist ? 'Added to wishlist!' : 'Removed from wishlist',
+        'success'
+      );
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Failed to update wishlist', 'error');
+    } finally {
+      setIsWishlistLoading(false);
+    }
+  };
+
+  const handleNotifyMe = async (e) => {
+    e.preventDefault();
+    if (!notificationEmail) {
+      showToast('Please enter your email', 'error');
+      return;
+    }
+
+    setIsNotificationLoading(true);
+    try {
+      await stockNotificationAPI.requestNotification(product._id, notificationEmail);
+      showToast('You will be notified when this product is back in stock!', 'success');
+      setShowNotificationForm(false);
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Failed to subscribe to notifications', 'error');
+    } finally {
+      setIsNotificationLoading(false);
+    }
+  };
+
   return (
     <div className="p-6 flex flex-col">
       <div className="mb-1 text-sm text-gray-500">{typeName}</div>
       <h1 className="text-2xl md:text-3xl font-bold mb-2">{product.name}</h1>
       
-      <div className="flex items-center mb-4">
+      <div className="flex flex-wrap items-center gap-3 mb-4">
         <div className="flex items-center">
           {[1, 2, 3, 4, 5].map((star) => {
             const fillPercent = Math.min(Math.max(product.rating - (star - 1), 0), 1) * 100;
@@ -60,13 +121,26 @@ const ProductInfo = ({
           })}
           <span className="ml-2 text-sm font-medium">{product.rating}</span>
         </div>
-        <span className="mx-2 text-gray-300">|</span>
+        <span className="text-gray-300">|</span>
         <button
           onClick={scrollToReviews}
           className="text-sm text-gray-500 hover:text-green-700 hover:underline transition-colors duration-200 cursor-pointer"
         >
           {product.reviewCount} reviews
         </button>
+
+        {/* Quality Check Badge */}
+        {product.qualityCheckPoints && (
+          <>
+            <span className="text-gray-300">|</span>
+            <div className="bg-green-50 border border-green-200 rounded-full px-3 py-1 flex items-center">
+              <CheckCircle className="h-4 w-4 text-green-600 mr-1.5" />
+              <span className="text-sm font-semibold text-green-700">
+                {product.qualityCheckPoints}-Point Quality Check
+              </span>
+            </div>
+          </>
+        )}
       </div>
       
       {/* Innovative Price Display */}
@@ -224,10 +298,54 @@ const ProductInfo = ({
           </span>
         </div>
         {product.stock === 0 && (
-          <div className="mt-2 bg-red-50 border border-red-200 rounded-md p-3">
-            <p className="text-sm text-red-700 font-medium">
-              This item is currently out of stock. Please check back later or contact us for availability.
-            </p>
+          <div className="mt-3 space-y-3">
+            <div className="bg-red-50 border border-red-200 rounded-md p-3">
+              <p className="text-sm text-red-700 font-medium mb-2">
+                This item is currently out of stock.
+              </p>
+              {!showNotificationForm && (
+                <button
+                  onClick={() => setShowNotificationForm(true)}
+                  className="text-sm text-green-700 font-semibold hover:text-green-800 flex items-center"
+                >
+                  <Bell className="h-4 w-4 mr-1" />
+                  Notify me when available
+                </button>
+              )}
+            </div>
+
+            {/* Notification Form */}
+            {showNotificationForm && (
+              <form onSubmit={handleNotifyMe} className="bg-green-50 border border-green-200 rounded-md p-4">
+                <h4 className="text-sm font-semibold text-green-800 mb-2">Get Notified When Back in Stock</h4>
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={notificationEmail}
+                    onChange={(e) => setNotificationEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="flex-1 px-3 py-2 border border-green-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                    required
+                  />
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="sm"
+                    disabled={isNotificationLoading}
+                    className="whitespace-nowrap"
+                  >
+                    {isNotificationLoading ? 'Subscribing...' : 'Notify Me'}
+                  </Button>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowNotificationForm(false)}
+                  className="text-xs text-gray-500 hover:text-gray-700 mt-2"
+                >
+                  Cancel
+                </button>
+              </form>
+            )}
           </div>
         )}
       </div>
@@ -277,14 +395,20 @@ const ProductInfo = ({
         >
           {product.stock === 0 ? 'Sold Out' : 'Add to Cart'}
         </Button>
-        {/* <Button
-          variant="outline"
-          size="lg"
-          className="w-14 flex-shrink-0"
-          aria-label="Add to wishlist"
+        <button
+          onClick={handleToggleWishlist}
+          disabled={isWishlistLoading}
+          className="w-14 h-10 flex items-center justify-center border-2 border-gray-300 rounded-md hover:border-red-500 hover:bg-red-50 transition-all duration-200 flex-shrink-0"
+          aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
         >
-          <Heart className="h-5 w-5" />
-        </Button> */}
+          <Heart
+            className={`h-5 w-5 transition-all duration-200 ${
+              isInWishlist
+                ? 'text-red-500 fill-red-500'
+                : 'text-gray-400'
+            }`}
+          />
+        </button>
       </div>
       
       {/* Benefits */}

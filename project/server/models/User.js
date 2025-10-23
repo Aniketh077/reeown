@@ -47,6 +47,10 @@ const userSchema = new mongoose.Schema({
       default: Date.now
     }
   },
+  wishlist: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product'
+  }],
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   
   // Email verification fields

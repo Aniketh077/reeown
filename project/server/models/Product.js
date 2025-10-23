@@ -36,6 +36,7 @@ const productSchema = new mongoose.Schema({
   features: [String],
   specifications: { type: Map, of: String },
   stock: { type: Number, default: 0 },
+  qualityCheckPoints: { type: Number, default: 41 },
   reviews:
    [{
    // For logged-in users (legacy support)

@@ -248,14 +248,14 @@ const customerMailOptions = {
   async sendOrderStatusUpdateEmail(order, user, newStatus, oldStatus) {
     try {
       const transporter = await this.createTransporter();
-      
+
       const statusTitles = {
         processing: 'Order is Being Processed',
         shipped: 'Order Has Been Shipped',
         delivered: 'Order Delivered Successfully',
         cancelled: 'Order Has Been Cancelled'
       };
-      
+
       const mailOptions = {
         from: `"${process.env.APP_NAME}" <${process.env.GMAIL_USER}>`,
         to: user.email,
@@ -268,6 +268,81 @@ const customerMailOptions = {
       return result;
     } catch (error) {
       console.error('Error sending order status update email:', error);
+      throw error;
+    }
+  }
+
+  async sendStockNotification(email, productName, productId) {
+    try {
+      const transporter = await this.createTransporter();
+      const productUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/product/${productId}`;
+
+      const mailOptions = {
+        from: `"${process.env.APP_NAME}" <${process.env.GMAIL_USER}>`,
+        to: email,
+        subject: `${productName} is Back in Stock!`,
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Product Back in Stock</title>
+          </head>
+          <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+            <table role="presentation" style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td align="center" style="padding: 40px 0;">
+                  <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    <tr>
+                      <td style="padding: 40px 30px; text-align: center; background: linear-gradient(135deg, #16a34a 0%, #059669 100%);">
+                        <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">Good News!</h1>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 40px 30px;">
+                        <h2 style="margin: 0 0 20px 0; color: #1f2937; font-size: 24px;">Your Wishlist Item is Back in Stock!</h2>
+                        <p style="margin: 0 0 20px 0; color: #4b5563; font-size: 16px; line-height: 1.5;">
+                          Great news! <strong>${productName}</strong> is now back in stock and ready to order.
+                        </p>
+                        <p style="margin: 0 0 30px 0; color: #4b5563; font-size: 16px; line-height: 1.5;">
+                          Don't miss out - this popular item sells out quickly!
+                        </p>
+                        <table role="presentation" style="margin: 0 auto;">
+                          <tr>
+                            <td style="border-radius: 6px; background: linear-gradient(135deg, #16a34a 0%, #059669 100%);">
+                              <a href="${productUrl}" style="display: inline-block; padding: 14px 40px; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 16px;">
+                                View Product
+                              </a>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 30px; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
+                        <p style="margin: 0; color: #6b7280; font-size: 14px; text-align: center;">
+                          You received this email because you requested to be notified when this product becomes available.
+                        </p>
+                        <p style="margin: 10px 0 0 0; color: #6b7280; font-size: 14px; text-align: center;">
+                          © ${new Date().getFullYear()} ${process.env.APP_NAME || 'EcoTrade'}. All rights reserved.
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+          </html>
+        `
+      };
+
+      const result = await transporter.sendMail(mailOptions);
+      console.log('Stock notification email sent:', result.messageId);
+      return result;
+    } catch (error) {
+      console.error('Error sending stock notification email:', error);
       throw error;
     }
   }

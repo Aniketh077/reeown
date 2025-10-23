@@ -1,12 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, ShoppingCart, Zap, Crown, Flame } from 'lucide-react';
+import { Star, ShoppingCart, Zap, Crown, Flame, Heart, CheckCircle } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useToast } from '../../contexts/ToastContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { wishlistAPI } from '../../api/wishlistAPI';
 
 const ProductCard = ({ product, viewMode = 'grid', showGamification = false }) => {
   const { addToCart } = useCart();
   const { showToast } = useToast();
+  const { user } = useAuth();
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [isWishlistLoading, setIsWishlistLoading] = useState(false);
+
+  useEffect(() => {
+    if (user && user.wishlist) {
+      setIsInWishlist(user.wishlist.some(id => id === product._id || id._id === product._id));
+    }
+  }, [user, product._id]);
   
   const discountPercentage = product.discountPrice 
     ? Math.round(((product.price - product.discountPrice) / product.price) * 100)
@@ -20,12 +31,36 @@ const ProductCard = ({ product, viewMode = 'grid', showGamification = false }) =
   const handleAddToCart = async (e) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     try {
       await addToCart(product, 1);
       showToast('Added to cart successfully!', 'success');
     } catch (error) {
       showToast('Please login to add items to cart', 'error');
+    }
+  };
+
+  const handleToggleWishlist = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!user) {
+      showToast('Please login to manage wishlist', 'error');
+      return;
+    }
+
+    setIsWishlistLoading(true);
+    try {
+      const response = await wishlistAPI.toggleWishlist(product._id);
+      setIsInWishlist(response.isInWishlist);
+      showToast(
+        response.isInWishlist ? 'Added to wishlist!' : 'Removed from wishlist',
+        'success'
+      );
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Failed to update wishlist', 'error');
+    } finally {
+      setIsWishlistLoading(false);
     }
   };
   const renderStars = (rating) => {
@@ -46,6 +81,22 @@ const ProductCard = ({ product, viewMode = 'grid', showGamification = false }) =
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 group">
         <div className="flex">
           <div className="w-48 h-48 flex-shrink-0 relative">
+            {/* Wishlist Heart Icon */}
+            <button
+              onClick={handleToggleWishlist}
+              disabled={isWishlistLoading}
+              className="absolute top-2 right-2 z-20 bg-white rounded-full p-2 shadow-md hover:shadow-lg transition-all duration-200"
+              aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+            >
+              <Heart
+                className={`h-4 w-4 transition-all duration-200 ${
+                  isInWishlist
+                    ? 'text-red-500 fill-red-500'
+                    : 'text-gray-400 hover:text-red-500'
+                }`}
+              />
+            </button>
+
             {/* Gamification Badges */}
             {showGamification && (
               <div className="absolute top-2 left-2 z-20 flex flex-col gap-1">
@@ -88,6 +139,19 @@ const ProductCard = ({ product, viewMode = 'grid', showGamification = false }) =
             <p className="text-gray-600 text-sm mb-3 line-clamp-2">
               {product.description}
             </p>
+
+            {/* Quality Check Badge */}
+            {product.qualityCheckPoints && (
+              <div className="flex items-center mb-2">
+                <div className="bg-green-50 border border-green-200 rounded-full px-3 py-1 flex items-center">
+                  <CheckCircle className="h-3 w-3 text-green-600 mr-1" />
+                  <span className="text-xs font-medium text-green-700">
+                    {product.qualityCheckPoints}-Point Quality Check
+                  </span>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center mb-3">
               <div className="flex items-center">
                 {renderStars(product.rating || 0)}
@@ -134,6 +198,22 @@ const ProductCard = ({ product, viewMode = 'grid', showGamification = false }) =
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300 group relative transform hover:scale-105">
+      {/* Wishlist Heart Icon */}
+      <button
+        onClick={handleToggleWishlist}
+        disabled={isWishlistLoading}
+        className="absolute top-2 right-2 z-30 bg-white rounded-full p-2 shadow-md hover:shadow-lg transition-all duration-200"
+        aria-label={isInWishlist ? 'Remove from wishlist' : 'Add to wishlist'}
+      >
+        <Heart
+          className={`h-5 w-5 transition-all duration-200 ${
+            isInWishlist
+              ? 'text-red-500 fill-red-500'
+              : 'text-gray-400 hover:text-red-500'
+          }`}
+        />
+      </button>
+
       {/* Gamification Badges */}
       {showGamification && (
         <>
@@ -216,6 +296,18 @@ const ProductCard = ({ product, viewMode = 'grid', showGamification = false }) =
           </h3>
         </Link>
         
+        {/* Quality Check Badge */}
+        {product.qualityCheckPoints && (
+          <div className="flex items-center mb-2">
+            <div className="bg-green-50 border border-green-200 rounded-full px-2 py-1 flex items-center">
+              <CheckCircle className="h-3 w-3 text-green-600 mr-1" />
+              <span className="text-xs font-medium text-green-700">
+                {product.qualityCheckPoints}-Point Check
+              </span>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center mb-3">
           <div className="flex items-center">
             {renderStars(product.rating || 0)}

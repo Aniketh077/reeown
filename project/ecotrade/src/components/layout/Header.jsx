@@ -14,6 +14,7 @@ import {
   Settings,
   Package,
   Phone,
+  Heart,
 } from "lucide-react";
 import Button from "../ui/Button";
 import { fetchCollections } from "../../store/slices/collectionSlice";
@@ -368,7 +369,16 @@ const Header = () => {
   </p>
   <p className="text-xs text-[#01374ae1]">Mon - Sat | 8am - 8pm</p>
 </div>
-             
+
+             <Link to="/wishlist" className="relative p-2 sm:p-3 text-[#01364a] hover:text-red-500 hover:bg-gray-100 rounded-md transition-colors" aria-label="Wishlist">
+                <Heart className="h-6 w-6" />
+                {user && user.wishlist && user.wishlist.length > 0 && (
+                    <span className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs font-bold text-white">
+                        {user.wishlist.length}
+                    </span>
+                )}
+             </Link>
+
              <Link to="/cart" className="relative p-2 sm:p-3 text-[#01364a] hover:text-emerald-600 hover:bg-gray-100 rounded-md transition-colors" aria-label={`Cart with ${cart.items.length} items`}>
                 <ShoppingCart className="h-6 w-6" />
                 {cart.items.length > 0 && (
@@ -394,6 +404,7 @@ const Header = () => {
                                 {isAdmin && <Link to="/admin" onClick={() => setIsProfileMenuOpen(false)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><Settings className="mr-2 h-4 w-4" />Admin Dashboard</Link>}
                                 <Link to="/account" onClick={() => setIsProfileMenuOpen(false)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><User className="mr-2 h-4 w-4" />My Account</Link>
                                 <Link to="/orders" onClick={() => setIsProfileMenuOpen(false)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><Package className="mr-2 h-4 w-4" />My Orders</Link>
+                                <Link to="/wishlist" onClick={() => setIsProfileMenuOpen(false)} className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><Heart className="mr-2 h-4 w-4" />My Wishlist</Link>
                                 <button onClick={handleLogout} className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-100"><LogOut className="mr-2 h-4 w-4" />Sign out</button>
                             </>
                         ) : (
