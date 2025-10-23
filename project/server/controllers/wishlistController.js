@@ -3,7 +3,7 @@ const Product = require('../models/Product');
 
 exports.getWishlist = async (req, res) => {
   try {
-    const user = await User.findById(req.userId).populate('wishlist');
+    const user = await User.findById(req.user._id).populate('wishlist');
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -32,7 +32,7 @@ exports.addToWishlist = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    const user = await User.findById(req.userId);
+    const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -65,7 +65,7 @@ exports.removeFromWishlist = async (req, res) => {
   try {
     const { productId } = req.params;
 
-    const user = await User.findById(req.userId);
+    const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -103,7 +103,7 @@ exports.toggleWishlist = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    const user = await User.findById(req.userId);
+    const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
