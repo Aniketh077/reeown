@@ -138,7 +138,7 @@ export const initiateRazorpayPayment = async (amount, userDetails, onSuccess, on
       key: import.meta.env.VITE_RAZORPAY_KEY_ID,
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
-      name: 'EcoTrade',
+      name: 'Reeown',
       description: 'Certified Refurbished Electronics',
       order_id: razorpayOrder.id,
       timeout: 300, // 5 minutes timeout
@@ -232,7 +232,7 @@ export const initiateRazorpayPayment = async (amount, userDetails, onSuccess, on
       },
       // Notes for EMI configuration
       notes: {
-        payment_for: 'EcoTrade Purchase',
+        payment_for: 'Reeown Purchase',
         customer_email: userDetails.email
       }
     };

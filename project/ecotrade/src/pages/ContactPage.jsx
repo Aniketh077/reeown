@@ -105,7 +105,7 @@ const ContactPage = () => {
 
   const handleLiveChat = () => {
     const whatsappNumber = '8008030203';
-    const message = 'Hello! I would like to get assistance with EcoTrade refurbished electronics.';
+    const message = 'Hello! I would like to get assistance with Reeown refurbished electronics.';
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
   };

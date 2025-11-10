@@ -230,7 +230,7 @@ const ProductInfo = ({
                 <span className="font-semibold text-gray-800">₹{originalPrice.toLocaleString('en-IN')}</span>
               </div>
               <div className="flex items-center justify-between text-sm mt-1">
-                <span className="text-green-700 font-medium">EcoTrade Price:</span>
+                <span className="text-green-700 font-medium">Reeown Price:</span>
                 <span className="font-bold text-green-700">₹{currentPrice.toLocaleString('en-IN')}</span>
               </div>
               {savings > 0 && (

@@ -24,10 +24,10 @@ const Footer = () => {
             {/* Company Info */}
             <div className="lg:col-span-2">
               <Link to="/" className="flex items-center mb-4">
-                <span className="text-3xl font-bold text-white">Eco<span className="text-[#10B981]">Trade</span></span>
+                <span className="text-3xl font-bold text-white">Ree<span className="text-[#10B981]">own</span></span>
               </Link>
               <p className="text-gray-300 mb-6">
-                EcoTrade offers premium certified refurbished electronics that are good for your wallet and the planet. Every device is thoroughly tested, certified, and comes with comprehensive warranty. Join us in reducing e-waste while enjoying quality technology.
+                Reeown offers premium certified refurbished electronics that are good for your wallet and the planet. Every device is thoroughly tested, certified, and comes with comprehensive warranty. Join us in reducing e-waste while enjoying quality technology.
               </p>
               <div className="space-y-3">
                 <div className="flex items-start">
@@ -97,7 +97,7 @@ const Footer = () => {
           <div className="border-t border-gray-700 py-6">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <p className="text-gray-300 text-sm mb-4 md:mb-0">
-                &copy; {new Date().getFullYear()} EcoTrade. All rights reserved.
+                &copy; {new Date().getFullYear()} Reeown. All rights reserved.
               </p>
               <div className="flex space-x-4">
                 <a href="#" className="text-gray-300 hover:text-[#10B981] transition-colors" aria-label="Facebook">

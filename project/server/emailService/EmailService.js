@@ -325,7 +325,7 @@ const customerMailOptions = {
                           You received this email because you requested to be notified when this product becomes available.
                         </p>
                         <p style="margin: 10px 0 0 0; color: #6b7280; font-size: 14px; text-align: center;">
-                          © ${new Date().getFullYear()} ${process.env.APP_NAME || 'EcoTrade'}. All rights reserved.
+                          © ${new Date().getFullYear()} ${process.env.APP_NAME || 'Reeown'}. All rights reserved.
                         </p>
                       </td>
                     </tr>

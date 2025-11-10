@@ -26,7 +26,7 @@ export const faqData = [
       },
       {
         id: 6,
-        question: 'Can I sell my old device to EcoTrade?',
+        question: 'Can I sell my old device to Reeown?',
         answer: 'Yes! We buy old smartphones, laptops, tablets, and other electronics. Get an instant quote on our website, schedule a free pickup, and receive payment immediately after device verification. We accept devices in any working condition.'
       },
       {
