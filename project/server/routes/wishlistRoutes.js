@@ -6,6 +6,7 @@ const wishlistController = require('../controllers/wishlistController');
 router.get('/', protect, wishlistController.getWishlist);
 router.post('/add', protect, wishlistController.addToWishlist);
 router.post('/toggle', protect, wishlistController.toggleWishlist);
+router.post('/sync', protect, wishlistController.syncWishlist);
 router.delete('/:productId', protect, wishlistController.removeFromWishlist);
 
 module.exports = router;

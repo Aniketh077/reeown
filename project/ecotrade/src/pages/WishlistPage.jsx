@@ -5,6 +5,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { useCart } from '../contexts/CartContext';
 import { wishlistAPI } from '../api/wishlistAPI';
+import { wishlistStorage } from '../utils/wishlistStorage';
+import { productAPI } from '../api/productAPI';
 import LoadingSpinner from '../components/ui/LoadingSpinner';
 import Button from '../components/ui/Button';
 
@@ -17,20 +19,33 @@ const WishlistPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) {
-      navigate('/login');
-      return;
-    }
     fetchWishlist();
   }, [user]);
 
   const fetchWishlist = async () => {
     try {
       setLoading(true);
-      const response = await wishlistAPI.getWishlist();
-      setWishlistProducts(response.wishlist || []);
+      if (user) {
+        // Fetch from backend for logged-in users
+        const response = await wishlistAPI.getWishlist();
+        setWishlistProducts(response.wishlist || []);
+      } else {
+        // Fetch from localStorage for guest users
+        const guestWishlistIds = wishlistStorage.getWishlist();
+        if (guestWishlistIds.length > 0) {
+          // Fetch product details for each ID
+          const productPromises = guestWishlistIds.map(id =>
+            productAPI.getProductById(id).catch(() => null)
+          );
+          const products = await Promise.all(productPromises);
+          setWishlistProducts(products.filter(p => p !== null));
+        } else {
+          setWishlistProducts([]);
+        }
+      }
     } catch (error) {
       showToast(error.response?.data?.message || 'Failed to fetch wishlist', 'error');
+      setWishlistProducts([]);
     } finally {
       setLoading(false);
     }
@@ -38,7 +53,11 @@ const WishlistPage = () => {
 
   const handleRemoveFromWishlist = async (productId) => {
     try {
-      await wishlistAPI.removeFromWishlist(productId);
+      if (user) {
+        await wishlistAPI.removeFromWishlist(productId);
+      } else {
+        wishlistStorage.removeFromWishlist(productId);
+      }
       setWishlistProducts(prev => prev.filter(p => p._id !== productId));
       showToast('Removed from wishlist', 'success');
     } catch (error) {

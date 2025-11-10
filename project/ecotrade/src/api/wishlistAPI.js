@@ -19,5 +19,11 @@ export const wishlistAPI = {
   toggleWishlist: async (productId) => {
     const response = await axios.post('/wishlist/toggle', { productId });
     return response.data;
+  },
+
+  // Sync guest wishlist with backend on login
+  syncWishlist: async (productIds) => {
+    const response = await axios.post('/wishlist/sync', { productIds });
+    return response.data;
   }
 };

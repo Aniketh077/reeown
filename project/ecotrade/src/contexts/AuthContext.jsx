@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getMe } from '../store/slices/authSlice'; // <-- 1. IMPORT getMe
 import { loginUser, registerUser, logout as logoutAction, clearError } from '../store/slices/authSlice';
+import { wishlistAPI } from '../api/wishlistAPI';
+import { wishlistStorage } from '../utils/wishlistStorage';
 
 const AuthContext = createContext();
 
@@ -39,16 +41,29 @@ export const AuthProvider = ({ children }) => {
     try {
       dispatch(clearError());
       const result = await dispatch(loginUser(credentials));
-      
+
       if (loginUser.fulfilled.match(result)) {
+        // Sync guest wishlist with backend after successful login
+        try {
+          const guestWishlist = wishlistStorage.getWishlist();
+          if (guestWishlist.length > 0) {
+            await wishlistAPI.syncWishlist(guestWishlist);
+            wishlistStorage.clearWishlist();
+            // Refresh user data to get updated wishlist
+            await dispatch(getMe());
+          }
+        } catch (syncError) {
+          console.error('Failed to sync wishlist:', syncError);
+          // Don't fail login if wishlist sync fails
+        }
         return { success: true, user: result.payload };
       } else if (loginUser.rejected.match(result)) {
-        return { 
-          success: false, 
-          error: result.payload?.message || 'Login failed' 
+        return {
+          success: false,
+          error: result.payload?.message || 'Login failed'
         };
       }
-      
+
       return { success: false, error: 'Login failed' };
     } catch (error) {
       return { success: false, error: 'An unexpected error occurred' };

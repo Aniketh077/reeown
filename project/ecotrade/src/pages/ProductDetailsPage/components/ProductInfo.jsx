@@ -5,6 +5,7 @@ import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { wishlistAPI } from '../../../api/wishlistAPI';
 import { stockNotificationAPI } from '../../../api/stockNotificationAPI';
+import { wishlistStorage } from '../../../utils/wishlistStorage';
 
 const ProductInfo = ({
   product,
@@ -27,8 +28,12 @@ const ProductInfo = ({
   const [isNotificationLoading, setIsNotificationLoading] = useState(false);
 
   useEffect(() => {
+    // Check wishlist status from localStorage or user data
     if (user && user.wishlist) {
       setIsInWishlist(user.wishlist.some(id => id === product._id || id._id === product._id));
+    } else {
+      // Check localStorage for guest users
+      setIsInWishlist(wishlistStorage.isInWishlist(product._id));
     }
     if (user && user.email) {
       setNotificationEmail(user.email);
@@ -58,19 +63,25 @@ const ProductInfo = ({
   const totalSavings = savings * quantity;
 
   const handleToggleWishlist = async () => {
-    if (!user) {
-      showToast('Please login to manage wishlist', 'error');
-      return;
-    }
-
     setIsWishlistLoading(true);
     try {
-      const response = await wishlistAPI.toggleWishlist(product._id);
-      setIsInWishlist(response.isInWishlist);
-      showToast(
-        response.isInWishlist ? 'Added to wishlist!' : 'Removed from wishlist',
-        'success'
-      );
+      if (user) {
+        // User is logged in - sync with backend
+        const response = await wishlistAPI.toggleWishlist(product._id);
+        setIsInWishlist(response.isInWishlist);
+        showToast(
+          response.isInWishlist ? 'Added to wishlist!' : 'Removed from wishlist',
+          'success'
+        );
+      } else {
+        // Guest user - use localStorage
+        const result = wishlistStorage.toggleWishlist(product._id);
+        setIsInWishlist(result.isInWishlist);
+        showToast(
+          result.isInWishlist ? 'Added to wishlist!' : 'Removed from wishlist',
+          'success'
+        );
+      }
     } catch (error) {
       showToast(error.response?.data?.message || 'Failed to update wishlist', 'error');
     } finally {

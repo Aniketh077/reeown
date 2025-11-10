@@ -142,3 +142,42 @@ exports.toggleWishlist = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+exports.syncWishlist = async (req, res) => {
+  try {
+    const { productIds } = req.body;
+
+    if (!productIds || !Array.isArray(productIds)) {
+      return res.status(400).json({ message: 'Product IDs array is required' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (!user.wishlist) {
+      user.wishlist = [];
+    }
+
+    // Merge guest wishlist with existing user wishlist
+    const uniqueProductIds = [...new Set([...user.wishlist.map(id => id.toString()), ...productIds])];
+
+    // Validate that all products exist
+    const validProducts = await Product.find({ _id: { $in: uniqueProductIds } });
+    const validProductIds = validProducts.map(p => p._id.toString());
+
+    user.wishlist = validProductIds;
+    await user.save();
+    await user.populate('wishlist');
+
+    res.status(200).json({
+      success: true,
+      message: 'Wishlist synced successfully',
+      wishlist: user.wishlist
+    });
+  } catch (error) {
+    console.error('Sync wishlist error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
