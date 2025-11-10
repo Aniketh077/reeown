@@ -2,28 +2,28 @@ import axios from './axios';
 
 export const wishlistAPI = {
   getWishlist: async () => {
-    const response = await axios.get('/wishlist');
+    const response = await axios.get('/api/wishlist');
     return response.data;
   },
 
   addToWishlist: async (productId) => {
-    const response = await axios.post('/wishlist/add', { productId });
+    const response = await axios.post('/api/wishlist/add', { productId });
     return response.data;
   },
 
   removeFromWishlist: async (productId) => {
-    const response = await axios.delete(`/wishlist/${productId}`);
+    const response = await axios.delete(`/api/wishlist/${productId}`);
     return response.data;
   },
 
   toggleWishlist: async (productId) => {
-    const response = await axios.post('/wishlist/toggle', { productId });
+    const response = await axios.post('/api/wishlist/toggle', { productId });
     return response.data;
   },
 
   // Sync guest wishlist with backend on login
   syncWishlist: async (productIds) => {
-    const response = await axios.post('/wishlist/sync', { productIds });
+    const response = await axios.post('/api/wishlist/sync', { productIds });
     return response.data;
   }
 };
