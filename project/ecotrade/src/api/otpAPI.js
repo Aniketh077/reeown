@@ -2,12 +2,12 @@ import axios from './axios';
 
 export const otpAPI = {
   sendOTP: async (phoneNumber) => {
-    const response = await axios.post('/otp/send', { phoneNumber });
+    const response = await axios.post('/api/otp/send', { phoneNumber });
     return response.data;
   },
 
   verifyOTP: async (phoneNumber, otp, name = null) => {
-    const response = await axios.post('/otp/verify', {
+    const response = await axios.post('/api/otp/verify', {
       phoneNumber,
       otp,
       ...(name && { name })
@@ -16,7 +16,7 @@ export const otpAPI = {
   },
 
   resendOTP: async (phoneNumber) => {
-    const response = await axios.post('/otp/resend', { phoneNumber });
+    const response = await axios.post('/api/otp/resend', { phoneNumber });
     return response.data;
   }
 };
