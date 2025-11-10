@@ -169,7 +169,8 @@ export const rateProduct = createAsyncThunk(
   async ({ productId, ratingData }, { getState, rejectWithValue }) => {
     try {
       const { auth } = getState();
-      const response = await productAPI.rateProduct(productId, ratingData, auth.user.token);
+      const token = auth.user?.token || null;
+      const response = await productAPI.rateProduct(productId, ratingData, token);
       return response;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || error.message);

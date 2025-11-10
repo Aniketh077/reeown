@@ -82,10 +82,10 @@ export const deleteType = async (id, token) => {
   return response.data;
 };
 
-export const rateProduct = async (productId, ratingData, token) => {
-  const config = {
+export const rateProduct = async (productId, ratingData, token = null) => {
+  const config = token ? {
     headers: { Authorization: `Bearer ${token}` }
-  };
+  } : {};
   const response = await axios.post(`${API_URL}/${productId}/rate`, ratingData, config);
   return response.data;
 };

@@ -383,6 +383,10 @@ const updateProduct = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
+    // Check if stock is being updated from 0 to > 0
+    const wasOutOfStock = existingProduct.stock === 0;
+    const willBeInStock = req.body.stock && req.body.stock > 0;
+
     if (!req.body.images) {
       req.body.images = existingProduct.images;
     }
@@ -406,6 +410,14 @@ const updateProduct = async (req, res) => {
       runValidators: true
     }).populate('type', 'name logo').populate('collection', 'name slug image');
 
+    // Trigger stock notifications if product back in stock
+    if (wasOutOfStock && willBeInStock) {
+      const { notifyStockAvailable } = require('./stockNotificationController');
+      notifyStockAvailable(product._id).catch(error => {
+        console.error('Failed to send stock notifications:', error);
+      });
+    }
+
     res.json(product);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -415,14 +427,10 @@ const updateProduct = async (req, res) => {
 
 const rateProduct = async (req, res) => {
   try {
-    const { rating, comment, orderId } = req.body;
+    const { rating, comment, guestName, guestEmail } = req.body;
 
     if (!rating || rating < 1 || rating > 5) {
       return res.status(400).json({ message: 'Rating must be between 1 and 5' });
-    }
-
-    if (!req.user || !req.user._id) {
-      return res.status(401).json({ message: 'You must be logged in to leave a review' });
     }
 
     const product = await Product.findById(req.params.id);
@@ -430,37 +438,64 @@ const rateProduct = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    const hasPurchased = await Order.findOne({
-      user: req.user._id,
-      'items.product': product._id,
-      status: { $in: ['processing', 'shipped', 'delivered'] }
-    });
+    let review;
+    let isVerifiedPurchase = false;
 
-    if (!hasPurchased) {
-      return res.status(403).json({
-        message: 'You can only review products you have purchased',
-        requiresPurchase: true
+    if (req.user && req.user._id) {
+      // Authenticated user - check if they purchased the product
+      const hasPurchased = await Order.findOne({
+        user: req.user._id,
+        'items.product': product._id,
+        status: { $in: ['processing', 'shipped', 'delivered'] }
       });
+
+      // Check if user already reviewed
+      const existingReview = product.reviews.find(
+        review => review.user && review.user.toString() === req.user._id.toString()
+      );
+
+      if (existingReview) {
+        return res.status(400).json({
+          message: 'You have already reviewed this product'
+        });
+      }
+
+      isVerifiedPurchase = !!hasPurchased;
+
+      review = {
+        user: req.user._id,
+        rating,
+        comment: comment ? comment.trim() : '',
+        isVerifiedPurchase,
+        orderId: hasPurchased ? hasPurchased._id : null,
+        createdAt: new Date()
+      };
+    } else {
+      // Guest user
+      if (!guestName || !guestEmail) {
+        return res.status(400).json({ message: 'Name and email are required for guest reviews' });
+      }
+
+      // Check if guest already reviewed using email
+      const existingGuestReview = product.reviews.find(
+        review => review.reviewerEmail && review.reviewerEmail.toLowerCase() === guestEmail.toLowerCase()
+      );
+
+      if (existingGuestReview) {
+        return res.status(400).json({
+          message: 'You have already reviewed this product with this email'
+        });
+      }
+
+      review = {
+        reviewerName: guestName.trim(),
+        reviewerEmail: guestEmail.toLowerCase().trim(),
+        rating,
+        comment: comment ? comment.trim() : '',
+        isVerifiedPurchase: false,
+        createdAt: new Date()
+      };
     }
-
-    const existingReview = product.reviews.find(
-      review => review.user && review.user.toString() === req.user._id.toString()
-    );
-
-    if (existingReview) {
-      return res.status(400).json({
-        message: 'You have already reviewed this product'
-      });
-    }
-
-    const review = {
-      user: req.user._id,
-      rating,
-      comment: comment ? comment.trim() : '',
-      isVerifiedPurchase: true,
-      orderId: hasPurchased._id,
-      createdAt: new Date()
-    };
 
     product.reviews.push(review);
 

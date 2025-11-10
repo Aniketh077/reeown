@@ -40,8 +40,8 @@ router.route('/')
 
 router.get('/collections', getCollectionsWithTypes);
 
-// Review route (requires authentication and verified purchase)
-router.post('/:id/rate', protect, rateProduct);
+// Review route (allows both guest and authenticated users)
+router.post('/:id/rate', rateProduct);
 
 router.route('/:id')
   .get(getProductById)
